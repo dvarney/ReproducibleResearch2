@@ -9,12 +9,12 @@ output: html_document
 ####   $$Project 2: Reproducible Research$$
       
         
-##### Severe Weather And Its Impact On Public Health and Economy 
+#### $Severe Weather And Its Impact On Public Health and Economy$ 
 
-##### Abstract  
+#### Abstract  
 In this report, the aim is to analyze the impact of disparate and connected weather events on public health and the economy. Reliance is on the storm database of the U.S. National Oceanic and Atmospheric Administration's (NOAA) from 1950 to 2011. Estimates of fatalities, injuries, property and crop damage were used to decide which types of event are most harmful to the population health and economy. Excessive heat and tornados were found to be most harmful with respect to population health, while flood, drought, and hurricane/typhoon have the greatest economic consequences.
 
-##### Introduction
+#### Introduction
 Storms and other catastrophic weather events cause both public health and economic problems. for communities and municipalities. Many storm events cause person injuries and fatalities with property damage a secondary concern. Preventing such outcomes to the extent possible is a major concern.
 
 This project involves exploring the NOAA storm database. This utility allows tracking characteristics of storms events, including time and location of estimates of fatalities, injuries, and property damage.
@@ -28,7 +28,7 @@ The methods section encompases the data analysis and addresses two, primary ques
 
 To assist in answering these issues, figures are included to illustrate points in the report. Recommendations are not suggested, but the presentation of statistically inferred data analysis is significant. For transparency, the data source is available from NOAA and R-code can be acquired in its entirety from the author.  
 
-###### Initial settings and load libraries
+##### Initial settings and load libraries
 ```{r, message=FALSE}
 library(R.utils)
 library(ggplot2)
@@ -41,10 +41,10 @@ options(scipen = 2)   # No scientific notation, but 2 dp
 ```   
 
 
-##### Data Processing
+#### Data Processing
 
 Redirect R-code and data file store.
-If the data already exists, we do not need to load it again. Otherwise, download, unzip and read the file.
+If the data already exists, we do not need to load it again. Otherwise, download and unzip the file.
 ```{r}
 setwd("K:/COURSES/JHU_DataScience/ReproducibleResearch/Project_2")
 
@@ -68,7 +68,7 @@ if (!"NOAA_StormData.csv" %in% dir("data"))
 ```
 
 
-check for a 'stormData' datafile loaded
+check for a 'stormData' datafile loaded, then read if available
 ```{r, warning=FALSE}
 if (!"stormData" %in% ls()) 
 {
@@ -78,12 +78,12 @@ if (!"stormData" %in% ls())
 
 message("READY to process")
 ```
-Inspect a small section of the 'RAW' data file
+Inspect a small section of the 'RAW' data file, there are 37 possible columns of information.
 
 ```{r}
 head(stormData, n = 2)
 ```
-The events in the database start in the year 1950 and end in November 2011. In the earlier years of the database there are generally fewer events recorded, possibly due to lacks records keeping. Recent years have better coverage.
+The events in this database start in April 1950 and end in November 2011. In the earlier years of the database there are generally fewer events recorded, possibly due to lacks records keeping. Recent years have better coverage.
 A quick scan of the data suggests that the number of storm events did increase during this period. A subset from 1995-2011 was extracted for this analysis.
 
 ```{r}
@@ -96,9 +96,6 @@ A quick scan of the data suggests that the number of storm events did increase d
 
 ```  
 Remove the above comment control to view the number of storms over the period 1950-2011
-
-The above figure illustrates the number of storm events significantly increase around 1995. Therefore, the data from 1990 to 2011 appears to be the most complete. The subset from 1995-2011 is extracted from the whole to facilitate processing.
-
 
 ##### Methods
 In this section, we check the number of personal **fatalities** and **injuries** that were caused by severe weather. The top 12 of the most severe types of weather events are reviewed
@@ -121,9 +118,9 @@ injuries <- fSortAssist("INJURIES", 12, data=storm)
 ```
 
 ###### Impact on Economy
-I convert the **property** and **crop damage** data into a monetary form according to the meaning of units described in the NOAA document. ([NWSPD 10-16, NATIONAL WEATHER SERVICE INSTRUCTION  10-1605](available at: http://www.nws.noaa.gov/directives/)) Both *PROPDMGEXP* and *CROPDMGEXP* columns record a cost multiplier for each event, where Hundred (H), Thousand (K), Million (M) and Billion (B) have their respective meaning.
+I convert the **property** and **crop damage** data into a monetary form according to the units described in the NOAA document, ([NWSPD 10-16, NATIONAL WEATHER SERVICE INSTRUCTION  10-1605](, available at: http://www.nws.noaa.gov/directives/)). Both *PROPDMGEXP* (PROPerty DaMaGe EXPense) and *CROPDMGEXP* (CROP DaMaGe EXPense) columns record a cost multiplier for each event, where Hundred (H), Thousand (K), Million (M) and Billion (B) have their respective meaning.
 
-```{r}
+```{r, warning=FALSE}
 #cost x Hundred (H), Thousand (K), Million (M) and Billion (B).
 fMonetaryAssist <- function(data = storm, fieldName, newFieldName) 
   {
@@ -151,19 +148,48 @@ fMonetaryAssist <- function(data = storm, fieldName, newFieldName)
     storm <- fMonetaryAssist(storm, "CROPDMGEXP", "cropDamage")
     names(storm)
     options(scipen=999)
+
+    property <- NULL
+    crop <- NULL
     property <- fSortAssist("propertyDamage", 12,  data=storm)
     crop <- fSortAssist("cropDamage", 12, data=storm)
-
+scan()
 ```
 
-##### Results
+#### Results
 For the impact on public health, we have two lists of severe weather events, listed below. For the 12 most severe, the number of people affected are enumerated. Of note are the numbers for **Excessive Heat** and **Tornados**.
-```{r}
 
-fatalities
-injuries
+Here, the two tables, FATALITIES and INJURIES, are merged. This allows viewing the physical (bodily) 'damage' side-by-side, assisting in comparision for probable events outcomes.
+
+```{r}
+merge(fatalities, injuries)
 
 ```
+Below is a set of graphs of fatalities and injuries from severe weather events. 
+```{r}
+#fatalities for 12 severe weather events summed across 1995-2011
+pFatalities <- qplot(EVTYPE, data=fatalities, weight=FATALITIES, binwidth = 1) +
+                    theme_bw() + 
+                    geom_bar(aes(fill="red"), color="black") +
+                    scale_y_continuous("Fatalities") + 
+                    theme(axis.text.x = element_text(angle = 45, hjust = 1), 
+                          legend.position = "none") +
+                    xlab("")
+ 
+#injuries, with the same parameters
+pInjuries <- qplot(EVTYPE, data=injuries, weight=INJURIES, binwidth = 1) + 
+                  theme_bw() + 
+                  geom_bar(fill="lightblue", color="black") +
+                  scale_y_continuous("Injuries") + 
+                  theme(axis.text.x = element_text(angle = 45, hjust = 1), 
+                        legend.position = "none") +
+                   xlab("")
+
+#create a panel plot of the above two
+grid.arrange(pFatalities, pInjuries, ncol = 2,
+             main="Severe Weather Events, 1995-2011\nFatalities and Injuries")
+```
+
 Find all weather events that are either hail or tornado related. As there is a strong correlation between these factors, the data is scoured by state over the 1995-2011 time frame.
 
 ```{r} 
@@ -211,30 +237,6 @@ Hail_Events
 Tornado_Events
 ```
 
-Below is a set of graphs of fatalities and injuries from severe weather events. 
-```{r}
-#fatalities for 12 severe weather events summed across 1995-2011
-pFatalities <- qplot(EVTYPE, data=fatalities, weight=FATALITIES, binwidth = 1) +
-                    theme_bw() + 
-                    geom_bar(aes(fill="red"), color="black") +
-                    scale_y_continuous("Fatalities") + 
-                    theme(axis.text.x = element_text(angle = 45, hjust = 1), 
-                          legend.position = "none") +
-                    xlab("")
- 
-#injuries, with the same parameters
-pInjuries <- qplot(EVTYPE, data=injuries, weight=INJURIES, binwidth = 1) + 
-                  theme_bw() + 
-                  geom_bar(fill="lightblue", color="black") +
-                  scale_y_continuous("Injuries") + 
-                  theme(axis.text.x = element_text(angle = 45, hjust = 1), 
-                        legend.position = "none") +
-                   xlab("")
-
-#create a panel plot of the above two
-grid.arrange(pFatalities, pInjuries, ncol = 2,
-             main="Severe Weather Events, 1995-2011\nFatalities and Injuries")
-```
 This plot depicts the total hail and tornado events across the country during the study period. The plot is a bit complicated, though a shrewd eye may deciper the details.
 
 ```{r}
@@ -259,13 +261,39 @@ t_HailTornadoByState<-ggplot() + theme_bw() +
 print(t_HailTornadoByState)
 ```  
 
-Based on the above histograms, we find that **excessive heat** and **tornado** cause most fatalities; **tornato** causes most injuries in the United States from 1995 to 2011.
-
-As for the impact on economy, we have two lists, as below, by the monetary cost for damages.  
+Based on the above histograms, we find that **excessive heat** and **tornados** cause most fatalities; tornados caused most injuries in the United States from 1995 to 2011. This seems counter intuitive, as one might consider hurricanes the most damaging and dangerous. However, tornados appearances can have very little warning, especially during the night, when most individuals are not quite awake when they hear a siren or the roar of the high velocity winds. 
 
 ```{r}
-property
-crop
+
+
+printMoney <- function(x)
+  {
+    format(x, digits=10, nsmall=2, decimal.mark=".", big.mark=",")
+  }
+                   
+t_property <- property
+t_crop<- crop
+
+#change column names to '$'name
+npd <- names(t_property)[2]; new_npd <- paste("$", npd, sep=""); names(t_property)[2] <- new_npd
+ncd <- names(t_crop)[2];     new_ncd <- paste("$", ncd, sep=""); names(t_crop)[2] <- new_ncd
+
+#select weather events common to property and crop damage
+mpc <- merge(t_property, t_crop) 
+
+#calc ratio between property and crops
+mpc[,4] <- round(mpc[,2]/mpc[,3], 2)
+colnames(mpc)[4] <- "ratio"
+
+#format property and crop numbers to $$ amounts with '.,'
+mpc[,2] <- printMoney(mpc[,2])
+mpc[,3] <- printMoney(mpc[,3])
+```
+For the economic impact, see the table below. The list displays the common damage events, e.g. FLOOD or   between the property and crops. There is a large difference in damage estimates, as noted by the 'ratio' column in the data table of monetary damages.
+
+```{r}
+mpc
+
 ```
 The following is a pair of graphs of total property damage and crop damage affected by the mentioned severe weather events. 
 ```{r}
@@ -289,5 +317,5 @@ grid.arrange(propertyDamage, cropDamage, ncol = 2,
 
 Based on the above histograms, we find that **flood** and **hurricane/typhoon** cause most property damage; **drought** and **flood** causes most crop damage in the United States from 1995 to 2011.
 
-##### Conclusion  
+#### Conclusion  
 From these data, we found that **excessive heat** and **tornado** are most harmful with respect to population health, while **flood**, **drought**, and **hurricane/typhoon** have the greatest economic consequences.
